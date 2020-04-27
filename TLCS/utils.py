@@ -3,6 +3,7 @@ from sumolib import checkBinary
 import os
 import sys
 
+config = {}
 
 def import_train_configuration(config_file):
     """
@@ -10,23 +11,29 @@ def import_train_configuration(config_file):
     """
     content = configparser.ConfigParser()
     content.read(config_file)
-    config = {}
+
     config['gui'] = content['simulation'].getboolean('gui')
     config['total_episodes'] = content['simulation'].getint('total_episodes')
     config['max_steps'] = content['simulation'].getint('max_steps')
-    config['n_cars_generated'] = content['simulation'].getint('n_cars_generated')
+    config['n_vehicles_generated'] = content['simulation'].getint('n_vehicles_generated')
     config['green_duration'] = content['simulation'].getint('green_duration')
     config['yellow_duration'] = content['simulation'].getint('yellow_duration')
+
     config['num_layers'] = content['model'].getint('num_layers')
     config['width_layers'] = content['model'].getint('width_layers')
     config['batch_size'] = content['model'].getint('batch_size')
     config['learning_rate'] = content['model'].getfloat('learning_rate')
     config['training_epochs'] = content['model'].getint('training_epochs')
+    config['model_file_path'] = content['model']['model_file_path']
+    config['start_episode'] = content['model'].getint('start_episode')
+
     config['memory_size_min'] = content['memory'].getint('memory_size_min')
     config['memory_size_max'] = content['memory'].getint('memory_size_max')
+
     config['num_states'] = content['agent'].getint('num_states')
     config['num_actions'] = content['agent'].getint('num_actions')
     config['gamma'] = content['agent'].getfloat('gamma')
+
     config['models_path_name'] = content['dir']['models_path_name']
     config['sumocfg_file_name'] = content['dir']['sumocfg_file_name']
     return config
@@ -41,7 +48,7 @@ def import_test_configuration(config_file):
     config = {}
     config['gui'] = content['simulation'].getboolean('gui')
     config['max_steps'] = content['simulation'].getint('max_steps')
-    config['n_cars_generated'] = content['simulation'].getint('n_cars_generated')
+    config['n_vehicles_generated'] = content['simulation'].getint('n_vehicles_generated')
     config['episode_seed'] = content['simulation'].getint('episode_seed')
     config['green_duration'] = content['simulation'].getint('green_duration')
     config['yellow_duration'] = content['simulation'].getint('yellow_duration')
@@ -71,7 +78,7 @@ def set_sumo(gui, sumocfg_file_name, max_steps):
         sumoBinary = checkBinary('sumo-gui')
  
     # setting the cmd command to run sumo at simulation time
-    sumo_cmd = [sumoBinary, "-c", os.path.join('intersection', sumocfg_file_name), "--no-step-log", "true", "--waiting-time-memory", str(max_steps)]
+    sumo_cmd = [sumoBinary, "-c", os.path.join('buffer', sumocfg_file_name), "--no-step-log", "true", "--waiting-time-memory", str(max_steps)]
 
     return sumo_cmd
 
@@ -80,6 +87,11 @@ def set_train_path(models_path_name):
     """
     Create a new model path with an incremental integer, also considering previously created model paths
     """
+    if os.path.exists(config['model_file_path']):
+        path_name = '/'.join(config['model_file_path'].split('/')[:2])
+        path_name += '/'
+        return path_name
+
     models_path = os.path.join(os.getcwd(), models_path_name, '')
     os.makedirs(os.path.dirname(models_path), exist_ok=True)
 

@@ -1,0 +1,11 @@
+<edges>
+	<edge from="TL" to="N" id="TL2N" type="3L60"/>
+	<edge from="TL" to="S" id="TL2S" type="3L60"/>
+	<edge from="TL" to="E" id="TL2E" type="3L60"/>
+	<edge from="TL" to="W" id="TL2W" type="3L60"/>
+	<edge from="N" to="TL" id="N2TL" type="3L60"/>
+	<edge from="S" to="TL" id="S2TL" type="3L60"/>
+	<edge from="E" to="TL" id="E2TL" type="3L60"/>
+	<edge from="W" to="TL" id="W2TL" type="3L60"/>
+</edges>
+	

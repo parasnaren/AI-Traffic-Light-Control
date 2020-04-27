@@ -19,13 +19,16 @@ if __name__ == "__main__":
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
     path = set_train_path(config['models_path_name'])
 
+    print('Train path:', path)
+
     Model = TrainModel(
         config['num_layers'], 
         config['width_layers'], 
         config['batch_size'], 
         config['learning_rate'], 
+        config['model_file_path'],
         input_dim=config['num_states'], 
-        output_dim=config['num_actions']
+        output_dim=config['num_actions'],
     )
 
     Memory = Memory(
@@ -35,7 +38,7 @@ if __name__ == "__main__":
 
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
-        config['n_cars_generated']
+        config['n_vehicles_generated']
     )
 
     Visualization = Visualization(
@@ -59,6 +62,8 @@ if __name__ == "__main__":
     
     episode = 0
     timestamp_start = datetime.datetime.now()
+
+    episode = config['start_episode']
     
     while episode < config['total_episodes']:
         print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
@@ -66,6 +71,7 @@ if __name__ == "__main__":
         simulation_time, training_time = Simulation.run(episode, epsilon)  # run the simulation
         print('Simulation time:', simulation_time, 's - Training time:', training_time, 's - Total:', round(simulation_time+training_time, 1), 's')
         episode += 1
+        Model.save_model(path)
 
     print("\n----- Start time:", timestamp_start)
     print("----- End time:", datetime.datetime.now())

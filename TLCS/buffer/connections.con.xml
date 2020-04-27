@@ -1,0 +1,14 @@
+<connections>
+	<connection from="S2TL" to="TL2W" fromLane="0" toLane="0" via=":TL_0_0" tl="TL" linkIndex="0" dir="l" state="O"/>
+    <connection from="S2TL" to="TL2N" fromLane="1" toLane="1" via=":TL_1_1" tl="TL" linkIndex="1" dir="s" state="O"/>
+    <connection from="S2TL" to="TL2E" fromLane="2" toLane="2" via=":TL_4_0" tl="TL" linkIndex="2" dir="r" state="o"/>
+    <connection from="E2TL" to="TL2S" fromLane="0" toLane="0" via=":TL_5_0" tl="TL" linkIndex="3" dir="l" state="o"/>
+    <connection from="E2TL" to="TL2W" fromLane="1" toLane="1" via=":TL_6_1" tl="TL" linkIndex="4" dir="s" state="o"/>
+    <connection from="E2TL" to="TL2N" fromLane="2" toLane="2" via=":TL_9_0" tl="TL" linkIndex="5" dir="r" state="o"/>
+    <connection from="N2TL" to="TL2E" fromLane="0" toLane="0" via=":TL_10_0" tl="TL" linkIndex="6" dir="l" state="O"/>
+    <connection from="N2TL" to="TL2S" fromLane="1" toLane="1" via=":TL_11_1" tl="TL" linkIndex="7" dir="s" state="O"/>
+    <connection from="N2TL" to="TL2W" fromLane="2" toLane="2" via=":TL_14_0" tl="TL" linkIndex="8" dir="r" state="o"/>
+    <connection from="W2TL" to="TL2N" fromLane="0" toLane="0" via=":TL_15_0" tl="TL" linkIndex="9" dir="l" state="o"/>
+    <connection from="W2TL" to="TL2E" fromLane="1" toLane="1" via=":TL_16_1" tl="TL" linkIndex="10" dir="s" state="o"/>
+    <connection from="W2TL" to="TL2S" fromLane="2" toLane="2" via=":TL_19_0" tl="TL" linkIndex="11" dir="r" state="o"/>
+</connections>

@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
-        config['n_cars_generated']
+        config['n_vehicles_generated']
     )
 
     Visualization = Visualization(

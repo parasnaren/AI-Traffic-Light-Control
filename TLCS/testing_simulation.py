@@ -5,14 +5,18 @@ import timeit
 import os
 
 # phase codes based on environment.net.xml
-PHASE_NS_GREEN = 0  # action 0 code 00
-PHASE_NS_YELLOW = 1
-PHASE_NSL_GREEN = 2  # action 1 code 01
-PHASE_NSL_YELLOW = 3
-PHASE_EW_GREEN = 4  # action 2 code 10
-PHASE_EW_YELLOW = 5
-PHASE_EWL_GREEN = 6  # action 3 code 11
-PHASE_EWL_YELLOW = 7
+PHASE_NSL_GREEN = 0  # action 0
+PHASE_NSL_YELLOW = 1
+PHASE_WEL_GREEN = 2  # action 1
+PHASE_WEL_YELLOW = 3
+PHASE_S_EL_GREEN = 4  # action 2
+PHASE_S_EL_YELLOW = 5
+PHASE_W_SL_GREEN = 6  # action 3
+PHASE_W_SL_YELLOW = 7
+PHASE_N_WL_GREEN = 8  # action 4
+PHASE_N_WL_YELLOW = 9
+PHASE_E_NL_GREEN = 10  # action 5 
+PHASE_E_NL_YELLOW = 11
 
 
 class Simulation:
@@ -102,15 +106,15 @@ class Simulation:
         Retrieve the waiting time of every car in the incoming roads
         """
         incoming_roads = ["E2TL", "N2TL", "W2TL", "S2TL"]
-        car_list = traci.vehicle.getIDList()
-        for car_id in car_list:
-            wait_time = traci.vehicle.getAccumulatedWaitingTime(car_id)
-            road_id = traci.vehicle.getRoadID(car_id)  # get the road id where the car is located
+        vehicle_list = traci.vehicle.getIDList()
+        for vehicle_id in vehicle_list:
+            wait_time = traci.vehicle.getAccumulatedWaitingTime(vehicle_id)
+            road_id = traci.vehicle.getRoadID(vehicle_id)  # get the road id where the car is located
             if road_id in incoming_roads:  # consider only the waiting times of cars in incoming roads
-                self._waiting_times[car_id] = wait_time
+                self._waiting_times[vehicle_id] = wait_time
             else:
-                if car_id in self._waiting_times: # a car that was tracked has cleared the intersection
-                    del self._waiting_times[car_id] 
+                if vehicle_id in self._waiting_times: # a car that was tracked has cleared the intersection
+                    del self._waiting_times[vehicle_id] 
         total_waiting_time = sum(self._waiting_times.values())
         return total_waiting_time
 
@@ -119,7 +123,9 @@ class Simulation:
         """
         Pick the best action known based on the current state of the env
         """
-        return np.argmax(self._Model.predict_one(state))
+        action = np.argmax(self._Model.predict_one(state))
+        # print('action taken: ', action)
+        return action
 
 
     def _set_yellow_phase(self, old_action):
@@ -134,16 +140,18 @@ class Simulation:
         """
         Activate the correct green light combination in sumo
         """
-
-
         if action_number == 0:
-            traci.trafficlight.setPhase("TL", PHASE_NS_GREEN)
-        elif action_number == 1:
             traci.trafficlight.setPhase("TL", PHASE_NSL_GREEN)
+        elif action_number == 1:
+            traci.trafficlight.setPhase("TL", PHASE_WEL_GREEN)
         elif action_number == 2:
-            traci.trafficlight.setPhase("TL", PHASE_EW_GREEN)
+            traci.trafficlight.setPhase("TL", PHASE_S_EL_GREEN)
         elif action_number == 3:
-            traci.trafficlight.setPhase("TL", PHASE_EWL_GREEN)
+            traci.trafficlight.setPhase("TL", PHASE_W_SL_GREEN)
+        elif action_number == 4:
+            traci.trafficlight.setPhase("TL", PHASE_N_WL_GREEN)
+        elif action_number == 5:
+            traci.trafficlight.setPhase("TL", PHASE_E_NL_GREEN)
 
 
     def _get_queue_length(self):
@@ -163,67 +171,66 @@ class Simulation:
         Retrieve the state of the intersection from sumo, in the form of cell occupancy
         """
         state = np.zeros(self._num_states)
-        car_list = traci.vehicle.getIDList()
+        vehicle_list = traci.vehicle.getIDList()
 
-        for car_id in car_list:
-            lane_pos = traci.vehicle.getLanePosition(car_id)
-            lane_id = traci.vehicle.getLaneID(car_id)
-            lane_pos = 750 - lane_pos  # inversion of lane pos, so if the car is close to the traffic light -> lane_pos = 0 --- 750 = max len of a road
+        for vehicle_id in vehicle_list:
+            lane_pos = traci.vehicle.getLanePosition(vehicle_id)
+            lane_id = traci.vehicle.getLaneID(vehicle_id)
+            lane_pos = 500 - lane_pos  # inversion of lane pos, so if the car is close to the traffic light -> lane_pos = 0 --- 500 = max len of a road
 
             # distance in meters from the traffic light -> mapping into cells
-            if lane_pos < 7:
+            if lane_pos < 8:
                 lane_cell = 0
-            elif lane_pos < 14:
+            elif lane_pos < 16:
                 lane_cell = 1
-            elif lane_pos < 21:
+            elif lane_pos < 24:
                 lane_cell = 2
-            elif lane_pos < 28:
+            elif lane_pos < 32:
                 lane_cell = 3
             elif lane_pos < 40:
                 lane_cell = 4
-            elif lane_pos < 60:
+            elif lane_pos < 56:
                 lane_cell = 5
-            elif lane_pos < 100:
+            elif lane_pos < 80:
                 lane_cell = 6
             elif lane_pos < 160:
                 lane_cell = 7
-            elif lane_pos < 400:
+            elif lane_pos < 320:
                 lane_cell = 8
-            elif lane_pos <= 750:
+            elif lane_pos <= 500:
                 lane_cell = 9
 
-            # finding the lane where the car is located 
-            # x2TL_3 are the "turn left only" lanes
-            if lane_id == "W2TL_0" or lane_id == "W2TL_1" or lane_id == "W2TL_2":
-                lane_group = 0
-            elif lane_id == "W2TL_3":
-                lane_group = 1
-            elif lane_id == "N2TL_0" or lane_id == "N2TL_1" or lane_id == "N2TL_2":
-                lane_group = 2
-            elif lane_id == "N2TL_3":
-                lane_group = 3
-            elif lane_id == "E2TL_0" or lane_id == "E2TL_1" or lane_id == "E2TL_2":
-                lane_group = 4
-            elif lane_id == "E2TL_3":
-                lane_group = 5
-            elif lane_id == "S2TL_0" or lane_id == "S2TL_1" or lane_id == "S2TL_2":
-                lane_group = 6
-            elif lane_id == "S2TL_3":
-                lane_group = 7
+            # finding the lane where the vehicle is located 
+            lane_id_map = {
+                'N2TL_0': 0,
+                'N2TL_1': 1,
+                'N2TL_2': 2,
+                'S2TL_0': 3,
+                'S2TL_1': 4,
+                'S2TL_2': 5,
+                'E2TL_0': 6,
+                'E2TL_1': 7,
+                'E2TL_2': 8,
+                'W2TL_0': 9,
+                'W2TL_1': 10,
+                'W2TL_2': 11,
+            }
+            if lane_id in lane_id_map:
+                lane_group = lane_id_map[lane_id]
             else:
                 lane_group = -1
 
-            if lane_group >= 1 and lane_group <= 7:
-                car_position = int(str(lane_group) + str(lane_cell))  # composition of the two postion ID to create a number in interval 0-79
-                valid_car = True
+            if lane_group >= 1 and lane_group <= 11:
+                vehicle_position = int(str(lane_group) + str(lane_cell))  # composition of the two postion ID to create a number in interval 0-79
+                valid_vehicle = True
             elif lane_group == 0:
-                car_position = lane_cell
-                valid_car = True
+                vehicle_position = lane_cell
+                valid_vehicle = True
             else:
-                valid_car = False  # flag for not detecting cars crossing the intersection or driving away from it
+                valid_vehicle = False  # flag for not detecting cars crossing the intersection or driving away from it
 
-            if valid_car:
-                state[car_position] = 1  # write the position of the car car_id in the state array in the form of "cell occupied"
+            if valid_vehicle:
+                state[vehicle_position] = 1  # write the position of the car vehicle_id in the state array in the form of "cell occupied"
 
         return state
 

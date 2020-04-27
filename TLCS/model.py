@@ -13,11 +13,12 @@ from tensorflow.keras.models import load_model
 
 
 class TrainModel:
-    def __init__(self, num_layers, width, batch_size, learning_rate, input_dim, output_dim):
+    def __init__(self, num_layers, width, batch_size, learning_rate, model_file_path, input_dim, output_dim):
         self._input_dim = input_dim
         self._output_dim = output_dim
         self._batch_size = batch_size
         self._learning_rate = learning_rate
+        self._model_file_path = model_file_path
         self._model = self._build_model(num_layers, width)
 
 
@@ -25,14 +26,20 @@ class TrainModel:
         """
         Build and compile a fully connected deep neural network
         """
-        inputs = keras.Input(shape=(self._input_dim,))
-        x = layers.Dense(width, activation='relu')(inputs)
-        for _ in range(num_layers):
-            x = layers.Dense(width, activation='relu')(x)
-        outputs = layers.Dense(self._output_dim, activation='linear')(x)
+        if os.path.exists(self._model_file_path):
+            model = load_model(self._model_file_path)
+            print('Loading Keras model..')
+        else:
+            inputs = keras.Input(shape=(self._input_dim,))
+            x = layers.Dense(width, activation='relu')(inputs)
+            for _ in range(num_layers):
+                x = layers.Dense(width, activation='relu')(x)
+            outputs = layers.Dense(self._output_dim, activation='linear')(x)
+            model = keras.Model(inputs=inputs, outputs=outputs, name='my_model')
+            model.compile(loss=losses.mean_squared_error, optimizer=Adam(lr=self._learning_rate))
+            print('Creating new Keras model..')
+            print(model.summary())
 
-        model = keras.Model(inputs=inputs, outputs=outputs, name='my_model')
-        model.compile(loss=losses.mean_squared_error, optimizer=Adam(lr=self._learning_rate))
         return model
     
 
@@ -62,6 +69,9 @@ class TrainModel:
         """
         Save the current model in the folder as h5 file and a model architecture summary as png
         """
+        model_path = os.path.join(path, 'trained_model.h5')
+        if os.path.exists(model_path):
+            os.remove(model_path)
         self._model.save(os.path.join(path, 'trained_model.h5'))
         # plot_model(self._model, to_file=os.path.join(path, 'model_structure.png'), show_shapes=True, show_layer_names=True)
 

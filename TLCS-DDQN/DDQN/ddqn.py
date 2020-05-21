@@ -50,7 +50,6 @@ class DDQN:
         self.max_steps = config['max_steps']
         self.green_duration = config['green_duration']
         self.yellow_duration = config['yellow_duration']
-        self.step = 0
 
         self.reward_store = []
         self.cumulative_wait_store = []
@@ -130,7 +129,7 @@ class DDQN:
             self.queue_length_episode = []
 
             old_total_wait = 0
-            old_state = self.get_state()
+            old_state = -1
             old_action = -1
             done = False
             actions, states, rewards = [], [], []
@@ -142,9 +141,6 @@ class DDQN:
                 current_total_wait = self.collect_waiting_times()
                 self.total_delay += current_total_wait
                 reward = old_total_wait - current_total_wait
-
-                if self.step != 0:
-                    self.memorize(old_state, action, reward, done, current_state)
 
                 # Actor picks an action (following the policy)
                 action = self.policy_action(np.expand_dims(old_state, axis=0))
@@ -165,8 +161,11 @@ class DDQN:
                 if reward < 0:
                     self.sum_neg_reward += reward
 
-                if self.step >= self.max_steps-1:
+                if self.step >= self.max_steps:
                     done = True
+
+                if self.step != 0:
+                    self.memorize(old_state, action, reward, done, current_state)
 
             self.save_episode_stats()
             traci.close()
@@ -184,6 +183,9 @@ class DDQN:
             for _ in range(self.training_epochs):
                 self.train_agent()
                 self.agent.transfer_weights()
+
+            if episode > 0 and episode % 10 == 0:
+                self.save_model()
 
             training_time = round(timeit.default_timer() - start_time, 1)
             print('Training duration:', training_time)
@@ -424,6 +426,7 @@ class DDQN:
         """
         self.reward_store.append(self.sum_neg_reward)  # how much negative reward in this episode
         self.cumulative_wait_store.append(self.sum_waiting_time)  # total number of seconds waited by cars in this episode
+        self.avg_queue_length_store.append(sum(self.queue_length_episode)/len(self.queue_length_episode))
 
 
     def display_episode_stats(self):
@@ -431,6 +434,7 @@ class DDQN:
         print('Total waiting time: ', self.sum_waiting_time)
         print('Max queue length: ', max(self.queue_length_episode))
         print('Avg queue length: ', sum(self.queue_length_episode)/len(self.queue_length_episode))
+
 
     def memorize(self, state, action, reward, done, new_state):
         """ Store experience in memory buffer

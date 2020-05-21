@@ -31,7 +31,6 @@ def main(args=None):
     input_dim = config['num_states']
     output_dim = config['num_actions']
     model_type = config['model_type']
-    model_path = config['model_path']
     episode_seed = config['episode_seed']
 
     set_session(get_session())

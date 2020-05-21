@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import keras.backend as K
+import os
 
 from keras.optimizers import Adam
 from keras.models import Model, Sequential, load_model
@@ -38,10 +39,11 @@ class Agent:
     def network(self):
         """ Build Deep Q-Network
         """
-        # Return model & target_model if exists for continued training
+        # Return model if exists for continued training/for testing
         if self.model_path:
-            print('Loaded model: {}'.format(self.model_path))
-            return load_model(self.model_path)
+            model_path = os.path.join(os.getcwd(), 'DDQN/models/'+self.model_path)
+            print('Loaded model: {}'.format(model_path))
+            return load_model(model_path)
 
         print('Creating model')
         model = Sequential()

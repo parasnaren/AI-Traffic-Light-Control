@@ -29,13 +29,14 @@ class DDQN:
     """ Deep Q-Learning Main Algorithm
     """
 
-    def __init__(self, TrafficGen, sumo_cmd, input_dim, output_dim, config):
+    def __init__(self, TrafficGen, sumo_cmd, input_dim, output_dim, config, export_path):
         """ Initialization
         """
         # Environment and DDQN parameters
         self.with_per = config.get('with_per', False)
         self.output_dim = output_dim
         self.input_dim = input_dim
+        self.export_path = export_path
         
         self.lr = config.get('learning_rate', 0.001)
         self.gamma = config.get('gamma', 0.75)
@@ -185,7 +186,7 @@ class DDQN:
                 self.agent.transfer_weights()
 
             if episode > 0 and episode % 10 == 0:
-                self.save_model()
+                self.save_model(self.export_path)
 
             training_time = round(timeit.default_timer() - start_time, 1)
             print('Training duration:', training_time)

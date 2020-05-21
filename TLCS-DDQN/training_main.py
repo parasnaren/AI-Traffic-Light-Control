@@ -37,19 +37,6 @@ def main(args=None):
     set_session(get_session())
     summary_writer = tf.summary.FileWriter(model_type + "/tensorboard_")
 
-    # Pick algorithm to train
-    if(model_type.upper()=="DDQN"):
-        algo = DDQN(TrafficGen, sumo_cmd, input_dim, output_dim, config)
-    elif(model_type.upper()=="DDQN+CLIP"):
-        algo = DDQN(TrafficGen, sumo_cmd, input_dim, output_dim, config)
-
-    # Train
-    stats = algo.simulate(summary_writer)
-
-    # Export results to CSV
-    # df = pd.DataFrame(np.array(stats))
-    # df.to_csv(args.type + "/logs.csv", header=['Episode', 'Mean', 'Stddev'], float_format='%10.5f')
-
     # Save weights and close environments
     exp_dir = '{}/models/'.format(model_type)
     if not os.path.exists(exp_dir):
@@ -60,6 +47,19 @@ def main(args=None):
         model_type,
         total_episodes,
         batch_size)
+
+    # Pick algorithm to train
+    if(model_type.upper()=="DDQN"):
+        algo = DDQN(TrafficGen, sumo_cmd, input_dim, output_dim, config, export_path)
+    elif(model_type.upper()=="DDQN+CLIP"):
+        algo = DDQN(TrafficGen, sumo_cmd, input_dim, output_dim, config, export_path)
+
+    # Train
+    stats = algo.simulate(summary_writer)
+
+    # Export results to CSV
+    # df = pd.DataFrame(np.array(stats))
+    # df.to_csv(args.type + "/logs.csv", header=['Episode', 'Mean', 'Stddev'], float_format='%10.5f')
 
     algo.save_model(export_path)
 

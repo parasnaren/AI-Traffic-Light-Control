@@ -7,7 +7,7 @@
 -   Each model has corresponding training and testing configs specified in the **.ini** files
 
 ## Models
-### 1.  Deep Q-learning using Neural Network (TLCS-DQN)
+### 1.  Deep Q-Networks (TLCS-DQN)
 
 **Model types:**
 - DQN
@@ -20,9 +20,9 @@
 -   **model_4/** is a DQN+LSTM model trained on 300 episodes
 
 
-### 2. Double Deep Q-learning with Neural Network (TLCS-DDQN)
+### 2. Double Deep Q-Network (TLCS-DDQN)
 
 **Model Types:**
 - DDQN
 - DDQN + PER *(Prioritized Experience Replay)*
-- DDQN + PER + Dueling
+- Dueling DQN (+PER)

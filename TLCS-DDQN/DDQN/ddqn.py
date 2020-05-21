@@ -81,7 +81,7 @@ class DDQN:
         """ Train Q-network on batch sampled from the buffer
         """
         # Sample experience from memory buffer (optionally with PER)
-        state, action, reward, done, new_state, idx = self.buffer.sample_batch(self.batch_size)
+        state, action, reward, new_state, idx = self.buffer.sample_batch(self.batch_size)
 
         # Apply Bellman Equation on batch samples to train our DDQN
         q = self.agent.predict(state)
@@ -90,11 +90,8 @@ class DDQN:
 
         for i in range(state.shape[0]):
             old_q = q[i, action[i]]
-            if done[i]:
-                q[i, action[i]] = reward[i]
-            else:
-                next_best_action = np.argmax(next_q[i,:])
-                q[i, action[i]] = reward[i] + self.gamma * q_targ[i, next_best_action]
+            next_best_action = np.argmax(next_q[i,:])
+            q[i, action[i]] = reward[i] + self.gamma * q_targ[i, next_best_action]
 
             if(self.with_per):
                 # Update PER Sum Tree
@@ -132,7 +129,6 @@ class DDQN:
             old_total_wait = 0
             old_state = -1
             old_action = -1
-            done = False
             actions, states, rewards = [], [], []
 
             while self.step < self.max_steps:
@@ -143,8 +139,11 @@ class DDQN:
                 self.total_delay += current_total_wait
                 reward = old_total_wait - current_total_wait
 
+                if self.step != 0:
+                    self.memorize(old_state, action, reward, current_state)
+
                 # Actor picks an action (following the policy)
-                action = self.policy_action(np.expand_dims(old_state, axis=0))
+                action = self.policy_action(np.expand_dims(current_state, axis=0))
 
                 if self.step != 0 and old_action != action:
                     self.set_yellow_phase(old_action)
@@ -161,12 +160,6 @@ class DDQN:
 
                 if reward < 0:
                     self.sum_neg_reward += reward
-
-                if self.step >= self.max_steps:
-                    done = True
-
-                if self.step != 0:
-                    self.memorize(old_state, action, reward, done, current_state)
 
             self.save_episode_stats()
             traci.close()
@@ -437,7 +430,7 @@ class DDQN:
         print('Avg queue length: ', sum(self.queue_length_episode)/len(self.queue_length_episode))
 
 
-    def memorize(self, state, action, reward, done, new_state):
+    def memorize(self, state, action, reward, new_state):
         """ Store experience in memory buffer
         """
         if(self.with_per):
@@ -448,7 +441,7 @@ class DDQN:
             td_error = abs(new_val - q_val)[0]
         else:
             td_error = 0
-        self.buffer.memorize(state, action, reward, done, new_state, td_error)
+        self.buffer.memorize(state, action, reward, new_state, td_error)
 
 
     def save_model(self, path):

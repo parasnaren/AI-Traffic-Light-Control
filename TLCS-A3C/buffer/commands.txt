@@ -1,1 +1,0 @@
-netconvert --lefthand --no-turnarounds -n nodes.nod.xml -e edges.edg.xml -t types.type.xml -i tllogic.tl.xml -x connections.con.xml -o trial.net.xml

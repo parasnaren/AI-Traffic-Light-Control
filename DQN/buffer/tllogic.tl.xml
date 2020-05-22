@@ -1,0 +1,42 @@
+<tlLogic id="TL" type="static" programID="0" offset="0">
+
+	<phase duration="100" state="GGrrrrGGrrrr"/>
+	<phase duration="20" state="yyrrrryyrrrr"/>
+
+	<phase duration="100" state="rrrGGrrrrGGr"/>
+	<phase duration="20" state="rrryyrrrryyr"/>	
+	
+	<phase duration="100" state="GGGGrrrrrrrr"/>
+	<phase duration="20" state="yyyyrrrrrrrr"/>
+	
+	<phase duration="100" state="GrrrrrrrrGGG"/>
+	<phase duration="20" state="yrrrrrrrryyy"/>
+	
+	<phase duration="100" state="rrrrrrGGGGrr"/>
+	<phase duration="20" state="rrrrrryyyyrr"/>
+	
+	<phase duration="100" state="rrrGGGGrrrrr"/>
+	<phase duration="20" state="rrryyyyrrrrr"/>
+	
+</tlLogic>
+
+
+	<!--
+	<phase duration="100" state="GGrrrrGGrrrr"/>
+	<phase duration="100" state="yyrrrryyrrrr"/>
+
+	<phase duration="100" state="rrrGGrrrrGGr"/>
+	<phase duration="100" state="rrryyrrrryyr"/>	
+	
+	<phase duration="100" state="GGGGrrrrrrrr"/>
+	<phase duration="100" state="yyyyrrrrrrrr"/>
+	
+	<phase duration="100" state="GrrrrrrrrGGG"/>
+	<phase duration="100" state="yrrrrrrrryyy"/>
+	
+	<phase duration="100" state="rrrrrrGGGGrr"/>
+	<phase duration="100" state="rrrrrryyyyrr"/>
+	
+	<phase duration="100" state="rrrGGGGrrrrr"/>
+	<phase duration="100" state="rrryyyyrrrrr"/>
+	-->

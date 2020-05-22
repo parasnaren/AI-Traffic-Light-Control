@@ -46,14 +46,11 @@ def main(args=None):
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)
         
-    print(exp_dir)
     export_path = '{}/{}-episode_{}-batch_{}'.format(
         exp_dir,
         model_type,
         total_episodes,
         batch_size)
-
-    print(export_path)
 
     # Pick algorithm to train
     if(model_type.upper()=="DDQN"):

@@ -4,6 +4,8 @@ import numpy as np
 import traci
 import timeit
 from random import random, randrange
+import logging
+logging.basicConfig(level=logging.INFO)
 
 from tqdm import tqdm
 from agent import Agent
@@ -62,7 +64,7 @@ class DDQN:
         self.TrafficGen = TrafficGen
 
         # Create actor and critic networks
-        self.agent = Agent(self.input_dim, self.output_dim, self.lr, self.tau, self.dueling, config)
+        self.agent = Agent(self.input_dim, self.output_dim, self.lr, self.tau, self.dueling, config, self.export_path)
 
         # Memory Buffer for Experience Replay
         self.buffer = MemoryBuffer(self.buffer_size, self.with_per)
@@ -116,7 +118,7 @@ class DDQN:
             self.TrafficGen.generate_routefile(seed=episode)
 
             traci.start(self.sumo_cmd)
-            print("Simulating...")
+            logging.info("Simulating...")
 
             # inits
             self.step = 0
@@ -165,26 +167,23 @@ class DDQN:
             traci.close()
 
             simulation_time = round(timeit.default_timer() - start_time, 1)
-            print('Simulation duration:', simulation_time, "/ Epsilon:", round(self.epsilon, 2))
+            logging.info('Simulation duration: {} / Epsilon: {}'.format(simulation_time, round(self.epsilon, 2)))
 
             # Add decay to epsilon
             self.epsilon = 1.0 - (episode / self.total_episodes)
 
             # Train DDQN and transfer weights to target network
-            print("Training...")
+            logging.info("Training...")
             start_time = timeit.default_timer()
 
             for _ in range(self.training_epochs):
                 self.train_agent()
                 self.agent.transfer_weights()
 
-            if episode > 0 and episode % 10 == 0:
-                self.save_model(self.export_path)
-
             training_time = round(timeit.default_timer() - start_time, 1)
-            print('Training duration:', training_time)
+            logging.info('Training duration: {}'.format(training_time))
 
-            print('Episode duration: ', simulation_time + training_time)
+            logging.info('Episode duration: {}'.format(simulation_time + training_time))
 
             # Export results for Tensorboard
             score = tfSummary('score', self.sum_neg_reward)
@@ -213,7 +212,7 @@ class DDQN:
             self.TrafficGen.generate_routefile(seed=episode_seed)
 
             traci.start(self.sumo_cmd)
-            print("Simulating...")
+            logging.info("Simulating...")
 
             # inits
             self.step = 0
@@ -259,7 +258,7 @@ class DDQN:
             traci.close()
             self.display_episode_stats()
             simulation_time = round(timeit.default_timer() - start_time, 1)
-            print('Simulation duration:', simulation_time, "/ Epsilon:", round(self.epsilon, 2))
+            logging.info('Simulation duration:', simulation_time, "/ Epsilon:", round(self.epsilon, 2))
 
             # Export results for Tensorboard
             score = tfSummary('score', self.sum_neg_reward)
@@ -424,10 +423,10 @@ class DDQN:
 
 
     def display_episode_stats(self):
-        print('Total reward: ', self.sum_neg_reward)
-        print('Total waiting time: ', self.sum_waiting_time)
-        print('Max queue length: ', max(self.queue_length_episode))
-        print('Avg queue length: ', sum(self.queue_length_episode)/len(self.queue_length_episode))
+        logging.info('Total reward: ', self.sum_neg_reward)
+        logging.info('Total waiting time: ', self.sum_waiting_time)
+        logging.info('Max queue length: ', max(self.queue_length_episode))
+        logging.info('Avg queue length: ', sum(self.queue_length_episode)/len(self.queue_length_episode))
 
 
     def memorize(self, state, action, reward, new_state):

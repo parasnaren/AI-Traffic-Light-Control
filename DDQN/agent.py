@@ -2,6 +2,8 @@ import sys
 import numpy as np
 import keras.backend as K
 import os
+import logging
+logging.basicConfig(level=logging.INFO)
 
 from keras.optimizers import Adam
 from keras.models import Model, Sequential, load_model
@@ -12,7 +14,7 @@ class Agent:
     """ Agent Class (Network) for DDQN
     """
 
-    def __init__(self, input_dim, output_dim, lr, tau, dueling, config):
+    def __init__(self, input_dim, output_dim, lr, tau, dueling, config, export_path):
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.tau = tau
@@ -22,7 +24,8 @@ class Agent:
         self.width = config.get('width_layers')
         self.num_layers = config.get('num_layers')
         self.epochs = config.get('training_epochs')
-        self.model_path = config.get('model_path', None)
+        self.model_path = config.get('model_path')
+        self.export_path = export_path
 
         # Initialize Deep Q-Network
         self.model = self.network()
@@ -41,11 +44,10 @@ class Agent:
         """
         # Return model if exists for continued training/for testing
         if self.model_path:
-            model_path = os.path.join(os.getcwd(), 'ddqn/models/'+self.model_path)
-            print('Loaded model: {}'.format(model_path))
-            return load_model(model_path)
+            logging.info('Loaded model: {}'.format(self.export_path))
+            return load_model(self.export_path)
 
-        print('Creating model')
+        logging.info('Creating model')
         model = Sequential()
         model.add(Dense(self.width, input_shape=(self.input_dim,)))
         for _ in range(self.num_layers):
@@ -59,7 +61,6 @@ class Agent:
             model.add(Dense(self.output_dim, activation='linear'))
 
         model.compile(Adam(self.lr), 'mse')
-
         return model
 
 

@@ -41,7 +41,7 @@ class Agent:
         """
         # Return model if exists for continued training/for testing
         if self.model_path:
-            model_path = os.path.join(os.getcwd(), 'DDQN/models/'+self.model_path)
+            model_path = os.path.join(os.getcwd(), 'ddqn/models/'+self.model_path)
             print('Loaded model: {}'.format(model_path))
             return load_model(model_path)
 

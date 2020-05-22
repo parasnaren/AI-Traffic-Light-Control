@@ -29,7 +29,7 @@ class DDQN:
     """ Deep Q-Learning Main Algorithm
     """
 
-    def __init__(self, TrafficGen, sumo_cmd, input_dim, output_dim, config, export_path):
+    def __init__(self, TrafficGen, sumo_cmd, input_dim, output_dim, config, export_path=None):
         """ Initialization
         """
         # Environment and DDQN parameters

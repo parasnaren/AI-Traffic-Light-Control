@@ -435,7 +435,7 @@ class DDQN:
         if(self.with_per):
             q_val = self.agent.predict(np.expand_dims(state, axis=0))
             q_val_t = self.agent.target_predict(np.expand_dims(new_state, axis=0))
-            next_best_action = np.argmax(q_val)
+            next_best_action = np.argmax(self.agent.predict(np.expand_dims(new_state, axis=0)))
             new_val = reward + self.gamma * q_val_t[0, next_best_action]
             td_error = abs(new_val - q_val)[0]
         else:

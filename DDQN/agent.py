@@ -21,8 +21,8 @@ class Agent:
         self.dueling = dueling
         self.lr = lr
 
-        self.width = config.get('width_layers')
-        self.num_layers = config.get('num_layers')
+        self.width = config.get('width_layers', 500)
+        self.num_layers = config.get('num_layers', 4)
         self.epochs = config.get('training_epochs')
         self.model_path = config.get('model_path')
         self.export_path = export_path

@@ -8,7 +8,7 @@ from shutil import copyfile
 from training_simulation import Simulation
 from generator import TrafficGenerator
 from memory import Memory
-from model import TrainModel
+from dqn import DQN
 from visualization import Visualization
 from utils import import_train_configuration, set_sumo, set_train_path
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     print('Train path:', path)
 
-    Model = TrainModel(
+    Model = DQN(
         config['num_layers'], 
         config['width_layers'], 
         config['batch_size'], 

@@ -54,9 +54,9 @@ class DDQN:
         self.green_duration = config['green_duration']
         self.yellow_duration = config['yellow_duration']
 
-        self.reward_store = []
-        self.cumulative_wait_store = []
-        self.avg_queue_length_store = []
+        self._reward_store = []
+        self._cumulative_wait_store = []
+        self._avg_queue_length_store = []
 
         self.sumo_cmd = sumo_cmd
 
@@ -107,7 +107,7 @@ class DDQN:
         """ Main DDQN Training Algorithm
         """
         results = []
-        tqdm_e = tqdm(range(self.total_episodes), desc='Score', leave=True, unit=" episodes")
+        tqdm_e = tqdm(range(self.total_episodes), desc='Reward', leave=True, unit=" episodes")
 
         for episode in tqdm_e:
 
@@ -176,9 +176,9 @@ class DDQN:
             logging.info("Training...")
             start_time = timeit.default_timer()
 
-            for _ in range(self.training_epochs):
+            for i in range(self.training_epochs):
                 self.train_agent()
-                self.agent.transfer_weights()
+            self.agent.transfer_weights()
 
             training_time = round(timeit.default_timer() - start_time, 1)
             logging.info('Training duration: {}'.format(training_time))
@@ -417,9 +417,9 @@ class DDQN:
         """
         Save the stats of the episode to plot the graphs at the end of the session
         """
-        self.reward_store.append(self.sum_neg_reward)  # how much negative reward in this episode
-        self.cumulative_wait_store.append(self.sum_waiting_time)  # total number of seconds waited by cars in this episode
-        self.avg_queue_length_store.append(sum(self.queue_length_episode)/len(self.queue_length_episode))
+        self._reward_store.append(self.sum_neg_reward)  # how much negative reward in this episode
+        self._cumulative_wait_store.append(self.sum_waiting_time)  # total number of seconds waited by cars in this episode
+        self._avg_queue_length_store.append(sum(self.queue_length_episode)/len(self.queue_length_episode))
 
 
     def display_episode_stats(self):
@@ -452,4 +452,18 @@ class DDQN:
 
     def load_model(self, path):
         self.agent.load_model(path)
-    
+
+
+    @property
+    def reward_store(self):
+        return self._reward_store
+
+
+    @property
+    def cumulative_wait_store(self):
+        return self._cumulative_wait_store
+
+
+    @property
+    def avg_queue_length_store(self):
+        return self._avg_queue_length_store

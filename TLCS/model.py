@@ -5,11 +5,10 @@ import numpy as np
 import sys
 
 from tensorflow import keras
-from tensorflow.keras import layers
+from tensorflow.keras.layers import Dense, Activation, LSTM
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras import losses
 from tensorflow.keras.optimizers import Adam
-# from tensorflow.keras.utils import plot_model
-from tensorflow.keras.models import load_model
 
 
 class TrainModel:
@@ -30,12 +29,12 @@ class TrainModel:
             model = load_model(self._model_file_path)
             print('Loading Keras model..')
         else:
-            inputs = keras.Input(shape=(self._input_dim,))
-            x = layers.Dense(width, activation='relu')(inputs)
+            # inputs = keras.Input(shape=(self._input_dim,))
+            model = Sequential()
+            model.add(LSTM(200, input_shape=(1, self._input_dim), return_sequences=False))
             for _ in range(num_layers):
-                x = layers.Dense(width, activation='relu')(x)
-            outputs = layers.Dense(self._output_dim, activation='linear')(x)
-            model = keras.Model(inputs=inputs, outputs=outputs, name='my_model')
+                model.add(Dense(width, activation='relu'))
+            model.add(Dense(self._output_dim, activation='linear'))
             model.compile(loss=losses.mean_squared_error, optimizer=Adam(lr=self._learning_rate))
             print('Creating new Keras model..')
             print(model.summary())
@@ -47,7 +46,8 @@ class TrainModel:
         """
         Predict the action values from a single state
         """
-        state = np.reshape(state, [1, self._input_dim])
+        state = state.reshape(-1, 1, self._input_dim)
+        # state = np.reshape(state, [1, self._input_dim])
         return self._model.predict(state)
 
 
@@ -55,6 +55,7 @@ class TrainModel:
         """
         Predict the action values from a batch of states
         """
+        states = states.reshape(states.shape[0], -1, self._input_dim)
         return self._model.predict(states)
 
 
@@ -62,6 +63,7 @@ class TrainModel:
         """
         Train the nn using the updated q-values
         """
+        states = states.reshape(states.shape[0], -1, self._input_dim)
         self._model.fit(states, q_sa, epochs=1, verbose=0)
 
 
@@ -92,29 +94,32 @@ class TrainModel:
 
 
 class TestModel:
-    def __init__(self, input_dim, model_path):
+    def __init__(self, input_dim, model_path, model_type):
         self._input_dim = input_dim
         self._model = self._load_my_model(model_path)
+        self._model_type = model_type
 
 
     def _load_my_model(self, model_folder_path):
         """
         Load the model stored in the folder specified by the model number, if it exists
         """
-        model_file_path = os.path.join(model_folder_path, 'trained_model.h5')
-        
-        if os.path.isfile(model_file_path):
+        print(model_folder_path)
+        if 'model_0' not in model_folder_path:
+            model_file_path = os.path.join(model_folder_path, 'trained_model.h5')
             loaded_model = load_model(model_file_path)
             return loaded_model
-        else:
-            sys.exit("Model number not found")
+        return None
 
 
     def predict_one(self, state):
         """
         Predict the action values from a single state
         """
-        state = np.reshape(state, [1, self._input_dim])
+        if self._model_type == 'dqn-lstm':
+            state = state.reshape(-1, 1, self._input_dim)
+        elif self._model_type == 'dqn':
+            state = np.reshape(state, [1, self._input_dim])
         return self._model.predict(state)
 
 

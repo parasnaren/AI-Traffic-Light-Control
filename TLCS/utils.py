@@ -57,6 +57,7 @@ def import_test_configuration(config_file):
     config['sumocfg_file_name'] = content['dir']['sumocfg_file_name']
     config['models_path_name'] = content['dir']['models_path_name']
     config['model_to_test'] = content['dir'].getint('model_to_test') 
+    config['model_type'] = content['model']['model_type']
     return config
 
 
@@ -88,6 +89,7 @@ def set_train_path(models_path_name):
     Create a new model path with an incremental integer, also considering previously created model paths
     """
     if os.path.exists(config['model_file_path']):
+        print(config['model_file_path'])
         path_name = '/'.join(config['model_file_path'].split('/')[:2])
         path_name += '/'
         return path_name
@@ -112,10 +114,6 @@ def set_test_path(models_path_name, model_n):
     Returns a model path that identifies the model number provided as argument and a newly created 'test' path
     """
     model_folder_path = os.path.join(os.getcwd(), models_path_name, 'model_'+str(model_n), '')
-
-    if os.path.isdir(model_folder_path):    
-        plot_path = os.path.join(model_folder_path, 'test', '')
-        os.makedirs(os.path.dirname(plot_path), exist_ok=True)
-        return model_folder_path, plot_path
-    else: 
-        sys.exit('The model number specified does not exist in the models folder')
+    plot_path = os.path.join(model_folder_path, 'test', '')
+    os.makedirs(os.path.dirname(plot_path), exist_ok=True)
+    return model_folder_path, plot_path

@@ -3,6 +3,9 @@ import numpy as np
 import random
 import timeit
 import os
+import qlearn
+from utils import import_train_configuration
+
 
 # phase codes based on environment.net.xml
 PHASE_NSL_GREEN = 0  # action 0
@@ -18,6 +21,8 @@ PHASE_N_WL_YELLOW = 9
 PHASE_E_NL_GREEN = 10  # action 5 
 PHASE_E_NL_YELLOW = 11
 
+config = import_train_configuration(config_file='training_settings.ini')
+
 
 class Simulation:
     def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):
@@ -30,8 +35,58 @@ class Simulation:
         self._yellow_duration = yellow_duration
         self._num_states = num_states
         self._num_actions = num_actions
+        self._sum_neg_reward = 0
+        self._total_delay = 0
         self._reward_episode = []
         self._queue_length_episode = []
+        self.ai = qlearn.QLearn(actions=range(num_actions),
+                                alpha=0.1, gamma=0.9, epsilon=config['start_episode'] / config['total_episodes'])
+        self.ai.retrieve('table.pickle')
+
+
+    def run_base(self, episode):
+        """
+        Simulate Indian 4-way intersection
+        """
+        start_time = timeit.default_timer()
+
+        self._TrafficGen.generate_routefile(seed=episode)
+        traci.start(self._sumo_cmd)
+        print("Simulating...")
+
+        self._step = 0
+        self._waiting_times = {}
+        old_total_wait = 0
+        action_values = [2,0,3,1,4,0,5,1]
+        index = 0
+
+        while self._step < self._max_steps:
+            current_total_wait = self._collect_waiting_times()
+            self._total_delay += current_total_wait
+            reward = old_total_wait - current_total_wait
+
+            action = action_values[index%8]
+            self._set_green_phase(action)
+            self._simulate(40)
+
+            self._set_yellow_phase(action)
+            self._simulate(4)
+
+            if reward < 0:
+                self._sum_neg_reward += reward
+
+            index += 1
+
+            old_total_wait = current_total_wait
+
+        self._reward_episode.append(reward)
+        print("Total reward:", self._sum_neg_reward)
+        print("Total delay:", self._total_delay)
+        print("Max queue length", max(self._queue_length_episode))
+        print("Avg queue length", sum(self._queue_length_episode)/len(self._queue_length_episode))
+        traci.close()
+        simulation_time = round(timeit.default_timer() - start_time, 1)
+        return simulation_time
 
 
     def run(self, episode):
@@ -43,7 +98,7 @@ class Simulation:
         # first, generate the route file for this simulation and set up sumo
         self._TrafficGen.generate_routefile(seed=episode)
         traci.start(self._sumo_cmd)
-        print("Simulating...")
+        print("Simulating....")
 
         # inits
         self._step = 0
@@ -53,16 +108,13 @@ class Simulation:
 
         while self._step < self._max_steps:
 
-            # get current state of the intersection
             current_state = self._get_state()
 
-            # calculate reward of previous action: (change in cumulative waiting time between actions)
-            # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
             current_total_wait = self._collect_waiting_times()
+            self._total_delay += current_total_wait
             reward = old_total_wait - current_total_wait
 
-            # choose the light phase to activate, based on the current state of the intersection
-            action = self._choose_action(current_state)
+            action = self.ai.chooseAction(current_state)
 
             # if the chosen phase is different from the last phase, activate the yellow phase
             if self._step != 0 and old_action != action:
@@ -77,9 +129,14 @@ class Simulation:
             old_action = action
             old_total_wait = current_total_wait
 
-            self._reward_episode.append(reward)
+            if reward < 0:
+                self._sum_neg_reward += reward
 
-        #print("Total reward:", np.sum(self._reward_episode))
+        self._reward_episode.append(reward)
+        print("Total reward:", self._sum_neg_reward)
+        print("Total delay:", self._total_delay)
+        print("Max queue length", max(self._queue_length_episode))
+        print("Avg queue length", sum(self._queue_length_episode)/len(self._queue_length_episode))
         traci.close()
         simulation_time = round(timeit.default_timer() - start_time, 1)
 
@@ -124,7 +181,6 @@ class Simulation:
         Pick the best action known based on the current state of the env
         """
         action = np.argmax(self._Model.predict_one(state))
-        # print('action taken: ', action)
         return action
 
 
@@ -239,10 +295,6 @@ class Simulation:
     def queue_length_episode(self):
         return self._queue_length_episode
 
-
     @property
     def reward_episode(self):
         return self._reward_episode
-
-
-

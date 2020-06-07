@@ -1,8 +1,15 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import os
+import os, sys
 from shutil import copyfile
+
+if 'SUMO_HOME' in os.environ:
+    tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
+    sys.path.append(tools)
+else:
+    sys.exit("please declare environment variable 'SUMO_HOME'")
+
 
 from testing_simulation import Simulation
 from generator import TrafficGenerator
@@ -15,11 +22,13 @@ if __name__ == "__main__":
 
     config = import_test_configuration(config_file='testing_settings.ini')
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
-    model_path, plot_path = set_test_path(config['models_path_name'], config['model_to_test'])
+    model_to_test = config['model_to_test']
+    model_path, plot_path = set_test_path(config['models_path_name'], model_to_test)
 
     Model = TestModel(
         input_dim=config['num_states'],
-        model_path=model_path
+        model_path=model_path,
+        model_type=config['model_type']
     )
 
     TrafficGen = TrafficGenerator(
@@ -44,7 +53,11 @@ if __name__ == "__main__":
     )
 
     print('\n----- Test episode')
-    simulation_time = Simulation.run(config['episode_seed'])  # run the simulation
+
+    if model_to_test == 0:
+        simulation_time = Simulation.run_base(config['episode_seed'])
+    else:
+        simulation_time = Simulation.run(config['episode_seed'])
     print('Simulation time:', simulation_time, 's')
 
     print("----- Testing info saved at:", plot_path)

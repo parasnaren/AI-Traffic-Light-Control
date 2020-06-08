@@ -1,0 +1,12 @@
+Loading configuration... done.
+/home/kidiyoor/projects/traffic_simulation/AI-Traffic-Light-Control/DQN/models/model_7/
+
+----- Test episode
+ Retrying in 1 seconds
+Simulating....
+Total reward: -13108.0
+Total delay: 132933.0
+Max queue length 46
+Avg queue length 8.043888888888889
+Simulation time: 6.2 s
+----- Testing info saved at: /home/kidiyoor/projects/traffic_simulation/AI-Traffic-Light-Control/DQN/models/model_7/test/

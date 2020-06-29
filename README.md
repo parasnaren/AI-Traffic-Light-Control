@@ -7,7 +7,7 @@
 -   Each model has corresponding training and testing configs specified in the **.ini** files
 
 ## Models
-### 1.  Deep Q-Networks (DQN)
+#### 1.  Deep Q-Networks (DQN)
 
 **Model types:**
 - DQN
@@ -20,9 +20,18 @@
 -   **model_4/** is a DQN+LSTM model trained on 300 episodes
 
 
-### 2. Double Deep Q-Network (DDQN)
+#### 2. Double Deep Q-Network (DDQN)
 
 **Model Types:**
 - DDQN
 - DDQN + PER *(Prioritized Experience Replay)*
 - Dueling DQN (+ PER)
+
+
+## Setup
+
+1. Download SUMO from [here](https://sumo.dlr.de/docs/Downloads.php) and install the program.
+2. Ensure that you set your **PYTHONPATH** variable to point to your SUMO installation folder **/your/path/to/Sumo/tools**
+3. Clone the repository.
+4. Run `training_main.py` under either the DQN or DDQN directories.
+5. Additionally to view the models generated from training, set `gui=True` in the `testing_settings.ini` in order to view the simulation of traffic control.
